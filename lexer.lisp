@@ -94,33 +94,33 @@
 
 
 (defparameter *delimiters-operators* (stable-sort '(;; Punctuation
-                                                    (\(  1 (#\())
-                                                    (\)  1 (#\)))
-                                                    (\,  1 (#\,))
-                                                    (\.  1 (#\.))
-                                                    ([   1 (#\[))
-                                                    (]   1 (#\]))
-                                                    (\:  1 (#\:))
+                                                    (|(|   1 (#\())
+                                                    (|)|   1 (#\)))
+                                                    (|,|   1 (#\,))
+                                                    (|.|   1 (#\.))
+                                                    (|[|   1 (#\[))
+                                                    (|]|   1 (#\]))
+                                                    (|:|   1 (#\:))
 
                                                     ;; Operators
-                                                    (!   1 (#\!))
-                                                    (?   1 (#\?))
-                                                    (~   1 (#\~))
-                                                    (\|  1 (#\|))
-                                                    (&   1 (#\&))
-                                                    (<=> 3 (#\< #\= #\>))
-                                                    (<=  2 (#\< #\=))
-                                                    (>=  2 (#\> #\=))
-                                                    (<~> 3 (#\< #\~ #\>))
-                                                    (~\| 2 (#\~ #\|))     ;; Watch for this
-                                                    (~&  2 (#\~ #\&))
-                                                    (*   1 (#\*))
-                                                    (+   1 (#\+))
-                                                    (--> 3 (#\- #\- #\>))
+                                                    (|!|   1 (#\!))
+                                                    (|?|   1 (#\?))
+                                                    (|~|   1 (#\~))
+                                                    (|\||  1 (#\|))
+                                                    (|&|   1 (#\&))
+                                                    (|<=>| 3 (#\< #\= #\>))
+                                                    (|<=|  2 (#\< #\=))
+                                                    (|>=|  2 (#\> #\=))
+                                                    (|<~>| 3 (#\< #\~ #\>))
+                                                    (|~\|| 2 (#\~ #\|))     ;; Watch for this
+                                                    (|~&|  2 (#\~ #\&))
+                                                    (|*|   1 (#\*))
+                                                    (|+|   1 (#\+))
+                                                    (|-->| 3 (#\- #\- #\>))
 
                                                     ;; Predicates
-                                                    (=   1 (#\=))
-                                                    (!=  2 (#\! #\=)))
+                                                    (|=|   1 (#\=))
+                                                    (|!=|  2 (#\! #\=)))
                                                   (lambda (x y) (>= (cadr x) (cadr y)))))
 
                                                                        
@@ -178,7 +178,7 @@
        while line do
          (let ((col 1)
                start end token-text token)
-           
+
            (loop while (not (string= line "")) do
                 (cond
                   ;; Match whitespace.
@@ -203,8 +203,12 @@
                          (push (make-token-with-value 'LOWER-WORD token-text token-text
                                                       (make-pos filepath line-num col)) tokens))))
 
-                  ;; Upper word
-                  ((match-regex "^[0-9]*(\\.[0-9]+(e[+-][0-9]+)?)?")
+                  ;; Numbers
+                  ((or
+                    (match-regex "0")
+                    (match-regex "[1-9][0-9]*")
+                    (match-regex "[0-9]+\\.[0-9]+(e[+-][0-9]+)?")
+                    (match-regex "\\.[0-9]+(e[+-][0-9]+)?"))
                    (push (make-token-with-value 'NUMBER (read-from-string token-text) token-text
                                                 (make-pos filepath line-num col)) tokens))
 
@@ -254,6 +258,7 @@
 (defun make-stream-lexer (code-stream)
   "Creates a TPTP language lexer to tokenize the code in the given stream"
   (let ((token-list (tokenize-stream code-stream)))
+    (dump-token-list token-list)
     (lambda ()
       (let ((token (pop token-list)))
         (when token (format t "LEXER returning ~s ~s~%" (token-terminal token) (token-text token)))

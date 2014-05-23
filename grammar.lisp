@@ -40,7 +40,7 @@
   )
 
 (yacc:define-parser *tptp-grammar*
-  (:start-symbol file-input)
+  (:start-symbol tptp-file)
   (:terminals (LOWER-WORD UPPER-WORD NUMBER STRING
 
                   ;; Formula types
@@ -56,7 +56,7 @@
                   $TRUE $FALSE $DISTINCT
 
                   ;;Punctuation
-                  |(| |)| |'| |.| |[| |]| |:|
+                  |(| |)| |,| |.| |[| |]| |:|
 
                   ;; Operators
                   |!| |?| |~| |&| |\||
@@ -73,13 +73,12 @@
 
   ;;(:print-lookaheads t)
 
-  #|
   (tptp-file
    tptp-input
    (tptp-input tptp-file))
 
   (tptp-input
-   annotated-formulat
+   annotated-formula
    include-stmt)
 
   (annotated-formula
@@ -90,7 +89,7 @@
    tpi-annotated)
   
   (fof-annotated
-   (fof |(| name |,| formula-role |,| fof-formula annotations |)| |.| ))
+   (FOF |(| name |,| formula-role |,| fof-formula annotations |)| |.| ))
 
   (formula-role
    AXIOM
@@ -100,12 +99,12 @@
 
   ;; FOF formulae.
   (fof-formula
-   fof-logic-formula
+   (fof-logic-formula (dump-1 "fof-formula -> fof-logic-formula"))
    fof-sequent)
   
   (fof-logic-formula
    fof-binary-formula
-   fof-unary-formula)
+   fof-unitary-formula)
   
   (fof-binary-formula
    fof-binary-nonassoc
@@ -120,7 +119,7 @@
 
   (fof-or-formula
    (fof-unitary-formula |\|| fof-unitary-formula)
-   (fof-or-formula |\|| fof-unitary-formula)
+   (fof-or-formula |\|| fof-unitary-formula))
    
    (fof-and-formula
     (fof-unitary-formula |&| fof-unitary-formula)
@@ -155,6 +154,7 @@
    fof-logic-formula
    (fof-logic-formula |,| fof-tuple-list))
 
+
   ;; Special formulae.
   (fol-infix-unary
    (term infix-inequality term))
@@ -164,11 +164,54 @@
    |!|
    |?|)
 
+  ;; First order atoms
+  (atomic-formula
+   plain-atomic-formula
+   defined-atomic-formula
+   system-atomic-formula)
 
+  (plain-atomic-formula
+   ;;plain-term
+   proposition
+   (predicate |(| arguments |)|))
+
+  (predicate
+   atomic-word)
+
+  ;; First order terms
+  (term
+   function-term
+   variable
+   conditional-term
+   let-term)
+
+  (function-term
+   plain-term
+   defined-term
+   system-term)
+
+  (plain-term
+   constant
+   (functor |(| arguments |)|))
+
+  (constant
+   functor)
+
+  (functor
+   atomic-word)
+  
   ;; System terms
   (variable
    UPPER-WORD)
-  
+
+  (arguments
+   term
+   (term |,| arguments))
+
+  ;; Include directives
+  (include-stmt
+   (INCLUDE |(| filename |)| |.|))
+
   ;; General purpose
   (name
    atomic-word)
@@ -177,7 +220,8 @@
    LOWER-WORD
    single-quoted)
 
-  |#
+  (filename
+   single-quoted)
+  
   (single-quoted
    STRING))
-
