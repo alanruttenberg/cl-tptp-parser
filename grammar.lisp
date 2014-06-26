@@ -37,6 +37,14 @@
       ;;(dump-tree b)
       ;;(dump-tree c)
       (list a b c)))
+  
+  (defmacro dump-4 (name)
+    (lambda (a b c d)
+      (format t "~s: (~s ~s ~s ~s)~%~%" name a b c d)
+      ;;(dump-tree a)
+      ;;(dump-tree b)
+      ;;(dump-tree c)
+      (list a b c d)))
   )
 
 (yacc:define-parser *tptp-grammar*
@@ -74,8 +82,8 @@
   ;;(:print-lookaheads t)
 
   (tptp-file
-   tptp-input
-   (tptp-input tptp-file))
+   (tptp-input           (lambda (a) (cons a nil)))
+   (tptp-input tptp-file (lambda (a b) (cons a b))))
 
   (tptp-input
    annotated-formula
@@ -89,7 +97,7 @@
    tpi-annotated)
   
   (fof-annotated
-   (FOF |(| name |,| formula-role |,| fof-formula annotations |)| |.| ))
+   (FOF |(| name |,| formula-role |,| fof-formula #|annotations|# |)| |.| ))
 
   (formula-role
    AXIOM
@@ -100,7 +108,7 @@
   ;; FOF formulae.
   (fof-formula
    (fof-logic-formula (dump-1 "fof-formula -> fof-logic-formula"))
-   fof-sequent)
+   (fof-sequent (dump-1 "fof-formula -> fof-sequent")))
   
   (fof-logic-formula
    fof-binary-formula
@@ -164,6 +172,14 @@
    |!|
    |?|)
 
+  (binary-connective
+   |<=>|
+   |=>|
+   |<=|
+   |<~>|
+   |~\||
+   |~&|)
+
   ;; First order atoms
   (atomic-formula
    plain-atomic-formula
@@ -173,48 +189,53 @@
   (plain-atomic-formula
    ;;plain-term
    proposition
-   (predicate |(| arguments |)|))
+   (predicate |(| arguments |)| (dump-4 "proposition -> predicate ( arguments )")))
 
   (predicate
-   atomic-word)
+   (atomic-word (lambda (a) (make-instance 'tptp-predicate :name (token-text a) :token a))))
 
   ;; First order terms
   (term
-   function-term
-   variable
-   conditional-term
-   let-term)
+   (function-term (dump-1 "term -> function-term"))
+   (variable (dump-1 "term -> variable"))
+   (conditional-term (dump-1 "term -> conditional-term"))
+   (let-term (dump-1 "term -> let-term")))
 
   (function-term
-   plain-term
-   defined-term
-   system-term)
+   (plain-term (dump-1 "function-term -> plain-term"))
+   (defined-term (dump-1 "function-term -> defined-term"))
+   (system-term (dump-1 "function-term -> system-term")))
 
   (plain-term
-   constant
-   (functor |(| arguments |)|))
+   (constant (dump-1 "plain-term -> constant"))
+   (functor |(| arguments |)| (dump-4 "plain-term -> functor ( arguments )")))
 
   (constant
-   functor)
+   (functor (dump-1 "constant -> functor")))
 
   (functor
-   atomic-word)
+   (atomic-word (lambda (a)
+                  (make-instance 'tptp-functor
+                                 :name (token-text a)
+                                 :token a))))
   
   ;; System terms
   (variable
    UPPER-WORD)
 
   (arguments
-   term
-   (term |,| arguments))
+   (term               (lambda (a) (cons a nil)))
+   (term |,| arguments (lambda (a b c) (declare (ignore b)) (cons a c))))
 
   ;; Include directives
   (include-stmt
-   (INCLUDE |(| filename |)| |.|))
+   (INCLUDE |(| filename |)| |.| (lambda (a b c d e)
+                                   (declare (ignore b d e))
+                                   (make-instance 'tptp-include :file (token-text c) :token a))))
 
   ;; General purpose
   (name
-   atomic-word)
+   (atomic-word (dump-1 "name -> atomic-word")))
 
   (atomic-word
    LOWER-WORD

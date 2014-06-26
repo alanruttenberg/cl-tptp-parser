@@ -20,7 +20,9 @@
   :depends-on (:yacc :cl-tptp-parser.basic :cl-ppcre)
   :components ((:file "parser"
                       :depends-on ("grammar" "lexer"))
-               (:file "grammar")
+               (:file "grammar"
+                      :depends-on ("parser-ds"))
+               (:file "parser-ds")
                (:file "lexer")))
 
 ;;; Main system

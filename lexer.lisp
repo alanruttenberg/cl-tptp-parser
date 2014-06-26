@@ -110,6 +110,7 @@
                                                     (|&|   1 (#\&))
                                                     (|<=>| 3 (#\< #\= #\>))
                                                     (|<=|  2 (#\< #\=))
+                                                    (|=>|  2 (#\= #\>))
                                                     (|>=|  2 (#\> #\=))
                                                     (|<~>| 3 (#\< #\~ #\>))
                                                     (|~\|| 2 (#\~ #\|))     ;; Watch for this
@@ -261,7 +262,7 @@
     (dump-token-list token-list)
     (lambda ()
       (let ((token (pop token-list)))
-        (when token (format t "LEXER returning ~s ~s~%" (token-terminal token) (token-text token)))
+        ;;(when token (format t "LEXER returning ~s ~s~%" (token-terminal token) (token-text token)))
         (if (null token)
             (values nil nil)
             (values (token-terminal token) token))))))
