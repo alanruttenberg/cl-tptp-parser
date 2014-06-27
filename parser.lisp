@@ -15,7 +15,7 @@
 
 (defun parse-file (filename)
   (let ((statements (yacc:parse-with-lexer (make-file-lexer filename) *tptp-grammar*)))
-    (make-instance 'tptp-file
+    (make-instance 'file
                    :statements statements
                    :token nil)))
 

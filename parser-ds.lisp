@@ -24,46 +24,76 @@
   (:documentation "Base named AST node"))
 
 (defmethod print-object ((node ast-named-node) stream)
-  (format stream "<~a>" (ast-name node)))
+  (format stream "<~a ~a>" (type-of node) (ast-name node)))
 
-(extend-class tptp-term ast-named-node "Base term")
-(extend-class tptp-function-term tptp-term "Function term")
-(extend-class tptp-variable tptp-term "Variable")
-(extend-class tptp-conditional-term tptp-term "Conditional term")
-(extend-class tptp-let-term tptp-term "Let term")
+(extend-class term ast-named-node "Base term")
+(extend-class function-term term "Function term")
+(extend-class var term "Variable")
+(extend-class conditional-term term "Conditional term")
+(extend-class let-term term "Let term")
 
-(extend-class tptp-plain-term tptp-function-term "Plain term")
-(extend-class tptp-defined-term tptp-function-term "Defined term")
-(extend-class tptp-system-term tptp-function-term "System term")
+(extend-class plain-term function-term "Plain term")
+(extend-class defined-term function-term "Defined term")
+(extend-class system-term function-term "System term")
 
-(extend-class tptp-constant tptp-plain-term "Constant")
+(extend-class constant plain-term "Constant")
 
-(extend-class tptp-functor tptp-constant "Functor")
-
-
+(extend-class functor constant "Functor")
 
 
-(extend-class tptp-predicate ast-named-node "Predicate")
 
-(extend-class tptp-proposition ast-named-node "Proposition")
 
-(extend-class tptp-statement ast-node "Statement")
+(extend-class predicate ast-named-node "Predicate")
 
-(defclass tptp-include (tptp-statement)
+(extend-class proposition ast-named-node "Proposition")
+
+(defclass plain-atomic-formula (ast-node)
+  ((predicate :initarg  :predicate
+              :initform (error ":predicate must be specified")
+              :reader predicate)
+   (arguments :initarg  :arguments
+              :initform nil
+              :reader arguments)))
+
+(defmethod print-object ((formula plain-atomic-formula) stream)
+  (if (null (arguments formula))
+      (format stream "(~a)" (predicate formula))
+      (format stream "(~a~a)" (predicate formula) (arguments formula))))
+    
+(extend-class statement ast-node "Statement")
+
+(defclass include (statement)
   ((file :initarg :file
          :initform (error ":file must be specified")
          :reader   file))
   (:documentation "Include directive"))
 
-(defmethod print-object ((node tptp-include) stream)
-    (format stream "<INCLUDE ~a>" (file node)))
+(defmethod print-object ((node include) stream)
+  (format stream "<INCLUDE ~a>" (file node)))
 
-(defclass tptp-file (ast-node)
+(extend-class annotated statement "Annotated formula")
+
+(defclass fof-statement (annotated)
+  ((name    :initarg  :name
+            :initform (error ":name must be specified")
+            :reader   name)
+   (role    :initarg  :role
+            :initform (error ":role must be specified")
+            :reader   role)
+   (formula :initarg  :formula
+            :initform (error ":formula must be specified")
+            :reader   formula))
+  (:documentation "FOF statement"))
+
+(defmethod print-object ((statement fof-statement) stream)
+  (format stream "<FOF ~a ~a ~a>" (name statement) (role statement) (formula statement)))
+
+(defclass file (ast-node)
   ((statements :initarg  :statements
                :initform (error ":statements must be specified")
-               :reader   file-statements))
+               :reader   statements))
   (:documentation "File"))
 
-(defmethod print-object ((file tptp-file) stream)
-  (loop for statement in (file-statements file) do
+(defmethod print-object ((file file) stream)
+  (loop for statement in (statements file) do
        (format stream "~a~%" statement)))

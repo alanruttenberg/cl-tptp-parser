@@ -68,7 +68,7 @@
 
                   ;; Operators
                   |!| |?| |~| |&| |\||
-                  |<=>| |<=| |>=|
+                  |<=>| |<=| |=>|
                   |<~>| |~\|| |~&|
                   |*| |+|
                   |-->|
@@ -97,7 +97,13 @@
    tpi-annotated)
   
   (fof-annotated
-   (FOF |(| name |,| formula-role |,| fof-formula #|annotations|# |)| |.| ))
+   (FOF |(| name |,| formula-role |,| fof-formula #|annotations|# |)| |.| (lambda (a b c d e f g h i)
+                                                                            (declare (ignore b d f h i))
+                                                                            (make-instance 'fof-statement
+                                                                                           :name (token-text c)
+                                                                                           :role (token-text e)
+                                                                                           :formula g
+                                                                                           :token a)) ))
 
   (formula-role
    AXIOM
@@ -111,8 +117,8 @@
    (fof-sequent (dump-1 "fof-formula -> fof-sequent")))
   
   (fof-logic-formula
-   fof-binary-formula
-   fof-unitary-formula)
+   (fof-binary-formula (dump-1 "fof-logic-formula -> fof-binary-formula"))
+   (fof-unitary-formula (dump-1 "fof-logic-formula -> fof-unitary-formula")))
   
   (fof-binary-formula
    fof-binary-nonassoc
@@ -123,21 +129,23 @@
 
   (fof-binary-assoc
    fof-or-formula
-   for-and-formula)
+   fof-and-formula)
 
   (fof-or-formula
    (fof-unitary-formula |\|| fof-unitary-formula)
    (fof-or-formula |\|| fof-unitary-formula))
-   
-   (fof-and-formula
-    (fof-unitary-formula |&| fof-unitary-formula)
-    (fof-and-formula |&| fof-unitary-formula))
+
+  (fof-and-formula
+   (fof-unitary-formula |&| fof-unitary-formula)
+   (fof-and-formula |&| fof-unitary-formula))
 
   (fof-unitary-formula
    fof-quantified-formula
    fof-unary-formula
-   atomic-formula
-   ( |(| fof-logic-formula |)| ))
+   (atomic-formula (dump-1 "fof-unitary-formula -> atomic-formula"))
+   ( |(| fof-logic-formula |)| (lambda (a b c)
+                                 (declare (ignore a c))
+                                 b)))
 
   (fof-quantified-formula
    (fol-quantifier |[| fof-variable-list |]| |:| fof-unitary-formula))
@@ -173,26 +181,47 @@
    |?|)
 
   (binary-connective
-   |<=>|
    |=>|
+   |<=>|
    |<=|
    |<~>|
    |~\||
    |~&|)
 
+  (assoc-connective
+   |\||
+   |&|)
+
+  (unary-connective
+   |~|)
+
   ;; First order atoms
   (atomic-formula
-   plain-atomic-formula
+   (plain-atomic-formula (dump-1 "atomic-formula -> plain-atomic-formula"))
    defined-atomic-formula
    system-atomic-formula)
 
   (plain-atomic-formula
    ;;plain-term
-   proposition
-   (predicate |(| arguments |)| (dump-4 "proposition -> predicate ( arguments )")))
+   (proposition                 (lambda (a) (make-instance 'plain-atomic-formula
+                                                           :predicate a)))
+   (predicate |(| arguments |)| (lambda (a b c d)
+                                  (declare (ignore b d))
+                                  (make-instance 'plain-atomic-formula
+                                                 :predicate a
+                                                 :arguments c
+                                                 :token a))))
+                                           
 
+  (proposition
+   (predicate (dump-1 "proposition -> predicate")))
+  
   (predicate
-   (atomic-word (lambda (a) (make-instance 'tptp-predicate :name (token-text a) :token a))))
+   (atomic-word (lambda (a) (make-instance 'predicate :name (token-text a) :token a))))
+
+  
+  (infix-inequality
+   |!=|)
 
   ;; First order terms
   (term
@@ -215,7 +244,7 @@
 
   (functor
    (atomic-word (lambda (a)
-                  (make-instance 'tptp-functor
+                  (make-instance 'functor
                                  :name (token-text a)
                                  :token a))))
   
@@ -231,7 +260,7 @@
   (include-stmt
    (INCLUDE |(| filename |)| |.| (lambda (a b c d e)
                                    (declare (ignore b d e))
-                                   (make-instance 'tptp-include :file (token-text c) :token a))))
+                                   (make-instance 'include :file (token-text c) :token a))))
 
   ;; General purpose
   (name
