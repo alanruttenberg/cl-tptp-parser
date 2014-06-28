@@ -7,17 +7,17 @@
 (in-package :cl-tptp-parser.parser)
 
 (defclass filepos ()
-  ((file :initform ""
-         :initarg :file
-         :accessor pos-file
+  ((file :initform      ""
+         :initarg       :file
+         :accessor      pos-file
          :documentation "File name")
-   (line :initform -1
-         :initarg :line
-         :accessor pos-line
+   (line :initform      -1
+         :initarg       :line
+         :accessor      pos-line
          :documentation "Line number")
-   (col  :initform -1
-         :initarg :col
-         :accessor pos-col
+   (col  :initform      -1
+         :initarg       :col
+         :accessor      pos-col
          :documentation "Column number"))
   (:documentation "Position of a token in a file"))
 
@@ -28,20 +28,21 @@
                  :col col))
 
 (defclass token ()
-  ((terminal :initform nil
-             :initarg :terminal
-             :accessor token-terminal
+  ((terminal :initform      nil
+             :initarg       :terminal
+             :accessor      token-terminal
              :documentation "Token terminal")
-   (text     :initform ""
-             :initarg :text
-             :accessor token-text
+   (text     :initform      ""
+             :initarg       :text
+             :accessor      token-text
              :documentation "Contained text")
-   (value    :initform nil
-             :initarg :value
-             :accessor token-value
+   (value    :initform      nil
+             :initarg       :value
+             :accessor      token-value
              :documentation "Numeric value")
-   (pos      :initform nil
-             :initarg :pos
+   (pos      :initform      nil
+             :initarg       :pos
+             :accessor      token-pos
              :documentation "Position in file"))
   (:documentation "Token"))
 
@@ -59,7 +60,9 @@
                  :pos pos))
 
 (defmethod print-object ((tkn token) stream)
-  (format stream "<Token ~s ~s>" (token-terminal tkn) (token-text tkn)))
+  (format stream "<Token ~s ~s @ ~a ~s ~s>"
+          (token-terminal tkn) (token-text tkn)
+          (pos-file (token-pos tkn)) (pos-line (token-pos tkn)) (pos-col (token-pos tkn))))
 
 
 (defmacro define-keyword-lookup-table (keywords)

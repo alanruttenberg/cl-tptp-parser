@@ -79,7 +79,7 @@
   ;;(:precedence ((:left **) (:left %) (:left * / //) (:left + -)
     ;;            (:left << >> & \| ^ ~) (:left < > <= >= == !=) (:left NOT) (:left OR AND)))
 
-  ;;(:print-lookaheads t)
+  (:print-lookaheads t)
 
   (tptp-file
    (tptp-input           (lambda (a) (cons a nil)))
@@ -239,14 +239,16 @@
    (constant (dump-1 "plain-term -> constant"))
    (functor |(| arguments |)| (dump-4 "plain-term -> functor ( arguments )")))
 
+  #|(constant
+  (functor (dump-1 "constant -> functor")))|#
   (constant
-   (functor (dump-1 "constant -> functor")))
+   (atomic-word (dump-1 "constant -> atomic-word")))
 
-  (functor
+  #|(functor
    (atomic-word (lambda (a)
                   (make-instance 'functor
                                  :name (token-text a)
-                                 :token a))))
+                                 :token a))))|#
   
   ;; System terms
   (variable
