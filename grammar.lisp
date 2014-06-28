@@ -110,7 +110,7 @@
    HYPOTHESIS
    LEMMA
    CONJECTURE)
-
+  
   ;; FOF formulae.
   (fof-formula
    (fof-logic-formula (dump-1 "fof-formula -> fof-logic-formula"))
@@ -201,6 +201,7 @@
    defined-atomic-formula
    system-atomic-formula)
 
+  #|
   (plain-atomic-formula
    ;;plain-term
    (proposition                 (lambda (a) (make-instance 'plain-atomic-formula
@@ -210,15 +211,32 @@
                                   (make-instance 'plain-atomic-formula
                                                  :predicate a
                                                  :arguments c
-                                                 :token a))))
+  :token a))))|#
+  (plain-atomic-formula
+   plain-term)
                                            
 
-  (proposition
+  #|(proposition
    (predicate (dump-1 "proposition -> predicate")))
   
   (predicate
-   (atomic-word (lambda (a) (make-instance 'predicate :name (token-text a) :token a))))
+  (atomic-word (lambda (a) (make-instance 'predicate :name (token-text a) :token a))))|#
 
+  (defined-atomic-formula
+      defined-plain-formula
+      defined-infix-formula)
+  
+  (defined-plain-formula
+      defined-plain-term)
+
+  (defined-infix-formula
+      (term defined-infix-pred term))
+
+  (defined-infix-pred
+      infix-equality)
+
+  (infix-equality
+   |=|)
   
   (infix-inequality
    |!=|)
@@ -244,11 +262,11 @@
   (constant
    (atomic-word (dump-1 "constant -> atomic-word")))
 
-  #|(functor
+  (functor
    (atomic-word (lambda (a)
                   (make-instance 'functor
                                  :name (token-text a)
-                                 :token a))))|#
+                                 :token a))))
   
   ;; System terms
   (variable

@@ -136,6 +136,7 @@
            (setf start s
                  end e
                  token-text (subseq line start end)
+                 token-len (- end start)
                  line (subseq line end))
            t)
          nil)))
@@ -169,7 +170,7 @@
   `(multiple-value-bind (tk l) (read-delim-op line (make-pos filepath line-num col))
      (when tk
        (setf token tk
-             col (+ col l)
+             token-len l
              line (subseq line l)))
      tk))
 
@@ -180,8 +181,8 @@
     ;; Iterate over lines
     (loop as line = (read-line code-stream nil nil)
        while line do
-         (let ((col 1)
-               start end token-text token)
+         (let ((col 0)
+               start end token-text token token-len)
 
            (loop while (not (string= line "")) do
                 (cond
@@ -226,7 +227,8 @@
                    (push token tokens))
                   
                   ;; Unmatched
-                  (t (error "Lexer error at ~s" line)))))
+                  (t (error "Lexer error at ~s" line)))
+                (setf col (+ col token-len))))
                   
 
                   
@@ -243,12 +245,7 @@
 (defun dump-token-list (tokens)
   (when tokens
     (loop for token in tokens do
-         (format t "~s ~s ~s~%"
-                 (token-terminal token)
-                 (token-text token)
-                 (if (token-value token)
-                     (token-value token)
-                     "")))))
+         (format t "~s~%" token))))
   
 (defun test0 ()
   (dump-token-list (tokenize-file "/home/gautham/work/tptp/TPTP-v6.0.0/Axioms/AGT001+0.ax")))
@@ -262,10 +259,10 @@
 (defun make-stream-lexer (code-stream)
   "Creates a TPTP language lexer to tokenize the code in the given stream"
   (let ((token-list (tokenize-stream code-stream)))
-    (dump-token-list token-list)
+    ;;(dump-token-list token-list)
     (lambda ()
       (let ((token (pop token-list)))
-        ;;(when token (format t "LEXER returning ~s ~s~%" (token-terminal token) (token-text token)))
+        (when token (format t "LEXER returning ~s~%" token))
         (if (null token)
             (values nil nil)
             (values (token-terminal token) token))))))
