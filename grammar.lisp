@@ -79,7 +79,7 @@
   ;;(:precedence ((:left **) (:left %) (:left * / //) (:left + -)
     ;;            (:left << >> & \| ^ ~) (:left < > <= >= == !=) (:left NOT) (:left OR AND)))
 
-  (:print-lookaheads t)
+  ;;(:print-lookaheads t)
 
   (tptp-file
    (tptp-input           (lambda (a) (cons a nil)))
@@ -148,11 +148,23 @@
                                  b)))
 
   (fof-quantified-formula
-   (fol-quantifier |[| fof-variable-list |]| |:| fof-unitary-formula))
+   (fol-quantifier |[| fof-variable-list |]| |:| fof-unitary-formula
+                   (lambda (a b c d e f)
+                     (declare (ignore b d e))
+                     (make-instance 'fof-quantified-formula
+                                    :quantifier (if (equal (token-terminal a) '|!|)
+                                                    'ALL
+                                                    'ANY)
+                                    :variables c
+                                    :formula f
+                                    :token a))))
+                              
 
   (fof-variable-list
-   variable
-   (variable |,| fof-variable-list))
+   (variable (lambda (a) (cons a nil)))
+   (variable |,| fof-variable-list (lambda (a b c)
+                                     (declare (ignore b))
+                                     (cons a c))))
 
   (fof-unary-formula
    (unary-connective fof-unitary-formula)
@@ -254,23 +266,31 @@
    (system-term (dump-1 "function-term -> system-term")))
 
   (plain-term
-   (constant (dump-1 "plain-term -> constant"))
-   (functor |(| arguments |)| (dump-4 "plain-term -> functor ( arguments )")))
+   (constant                  (lambda (a)
+                                (make-instance 'constant
+                                               :value (token-text a)
+                                               :token a)))
+   (functor |(| arguments |)| (lambda (a b c d)
+                                (declare (ignore b d))
+                                (make-instance 'function-call
+                                               :functor   (token-text a)
+                                               :arguments c
+                                               :token a))))
 
-  #|(constant
-  (functor (dump-1 "constant -> functor")))|#
   (constant
-   (atomic-word (dump-1 "constant -> atomic-word")))
+  (functor (dump-1 "constant -> functor")))
+  #|(constant
+   (atomic-word (dump-1 "constant -> atomic-word")))|#
 
   (functor
-   (atomic-word (lambda (a)
-                  (make-instance 'functor
-                                 :name (token-text a)
-                                 :token a))))
+   atomic-word)
   
   ;; System terms
   (variable
-   UPPER-WORD)
+   (UPPER-WORD (lambda (a)
+                 (make-instance 'var
+                                :name (token-text a)
+                                :token a))))
 
   (arguments
    (term               (lambda (a) (cons a nil)))

@@ -7,9 +7,14 @@
 (in-package :cl-tptp-parser.parser)
 
 (defmacro extend-class (class base-class documentation)
-  `(defclass ,class (,base-class)
-     ()
-     (:documentation ,documentation)))
+  (if (listp base-class)
+      `(defclass ,class ,base-class
+         ()
+         (:documentation ,documentation))
+      `(defclass ,class (,base-class)
+         ()
+         (:documentation ,documentation))))
+  
     
 (defclass ast-node ()
   ((token :initarg  :token
@@ -17,26 +22,52 @@
           :reader   ast-token))
   (:documentation "Base AST node"))
 
-(defclass ast-named-node (ast-node)
-  ((name :initarg :name
+(defclass ast-named ()
+  ((name :initarg  :name
          :initform (error ":name must be specified")
          :reader   ast-name))
   (:documentation "Base named AST node"))
 
-(defmethod print-object ((node ast-named-node) stream)
+(defclass ast-argumented ()
+  ((arguments :initarg  :arguments
+              :initform (error ":arguments must be specified")
+              :reader arguments))
+  (:documentation "Node with arguments"))
+
+(defmethod print-object ((node ast-named) stream)
   (format stream "<~a ~a>" (type-of node) (ast-name node)))
 
-(extend-class term ast-named-node "Base term")
+(extend-class term ast-node "Base term")
 (extend-class function-term term "Function term")
-(extend-class var term "Variable")
+(extend-class var (term ast-named) "Variable")
 (extend-class conditional-term term "Conditional term")
 (extend-class let-term term "Let term")
 
 (extend-class plain-term function-term "Plain term")
+
+(defclass constant (plain-term)
+  ((value :initarg  :value
+          :initform (error ":value must be specified")
+          :reader   value))
+  (:documentation "Constant"))
+
+(defmethod print-object ((constant constant) stream)
+  (format stream "<~a>" (value constant)))
+
+(defclass function-call (plain-term ast-argumented)
+  ((functor :initarg  :functor
+            :initform (error ":functor must be specified")
+            :reader   functor))
+  (:documentation "Plain term with arguments"))
+
+(defmethod print-object ((term function-call) stream)
+  (format stream "<~a ~a>" (functor term) (arguments term)))
+           
+
 (extend-class defined-term function-term "Defined term")
 (extend-class system-term function-term "System term")
 
-(extend-class constant plain-term "Constant")
+;;(extend-class constant plain-term "Constant")
 
 (extend-class functor constant "Functor")
 
@@ -47,13 +78,30 @@
 
 (extend-class proposition ast-named-node "Proposition")
 
-(defclass plain-atomic-formula (ast-node)
+(extend-class fof-formula ast-node "FOF formula")
+(extend-class fof-binary-formula fof-formula "FOF binary formula")
+(extend-class fof-unitary-formula fof-formula "FOF unitary formula")
+
+(defclass fof-quantified-formula (fof-unitary-formula)
+  ((quantifier :initarg  :quantifier
+               :initform (error ":quantifier must be specified (ALL or ANY)")
+               :reader   quantifier)
+   (variables  :initarg  :variables
+               :initform (error ":variables must be specified")
+               :reader   variables)
+   (formula    :initarg  :formula
+               :initform (error ":formula must be specified")
+               :reader   formula))
+  (:documentation "FOF quantified formula"))
+
+(defmethod print-object ((qf fof-quantified-formula) stream)
+  (format stream "FOR~a [~s] ~s" (quantifier qf) (variables qf) (formula qf)))
+              
+(defclass plain-atomic-formula (ast-node ast-argumented)
   ((predicate :initarg  :predicate
               :initform (error ":predicate must be specified")
-              :reader predicate)
-   (arguments :initarg  :arguments
-              :initform nil
-              :reader arguments)))
+              :reader predicate))
+  (:documentation "Plain atomic formula"))
 
 (defmethod print-object ((formula plain-atomic-formula) stream)
   (if (null (arguments formula))

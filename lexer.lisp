@@ -192,6 +192,30 @@
                   ;; Match single-line comments.
                   ((match-regex "%.*$"))
 
+                  ;; Match multi-line comments.
+                  ((and (>= (length line) 2) (equal (subseq line 0 2) "/*"))
+                   (let ((end-found nil))
+                     (loop while (not end-found) do
+                          (format t "BEFORE LINE: ~a~%" line)
+                          (loop while (and (not (string= line "")) (not end-found)) do
+                               (if (and (>= (length line) 2) (equal (subseq line 0 2) "*/"))
+                                   (setf end-found t)
+                                   (setf col (1+ col)
+                                         line (subseq line 1))))
+                          (format t "AFTER LINE : ~a~%" line)
+                          (format t "COL: ~a LINE-NUM ~a~%" col line-num)
+                          (when (not end-found)
+                            (setf line (read-line code-stream nil nil)
+                                  col 0
+                                  line-num (1+ line-num))))
+                     (setf line (subseq line 2)
+                           token-len 2)))
+
+                  #|
+                  ((match-regex "/\\*")
+                  (format t "[ ~a ] [ ~a ]~%" token-text line))
+                  |#
+
                   ;; Upper word
                   ((match-regex "[A-Z][a-zA-Z0-9_]*")
                    (let ((kw-sym (gethash token-text *keywords*)))
@@ -200,7 +224,7 @@
                          (push (make-token-with-value 'UPPER-WORD token-text token-text
                                                       (make-pos filepath line-num col)) tokens))))
 
-                  ;; Lower word
+                  ;; Lower word - no dollar
                   ((match-regex "[a-z][a-zA-Z0-9_]*")
                    (let ((kw-sym (gethash token-text *keywords*)))
                      (if kw-sym
@@ -208,6 +232,11 @@
                          (push (make-token-with-value 'LOWER-WORD token-text token-text
                                                       (make-pos filepath line-num col)) tokens))))
 
+                  ;; Dollar-preefixed keyword
+                  ((match-regex "\\$[a-z][a-zA-Z0-9_]*")
+                   (let ((kw-sym (gethash token-text *keywords*)))
+                     (push (make-token kw-sym token-text (make-pos filepath line-num col)) tokens)))
+                  
                   ;; Numbers
                   ((or
                     (match-regex "0")
@@ -218,7 +247,8 @@
                                                 (make-pos filepath line-num col)) tokens))
 
                   ;; Match string
-                  ((match-regex "'[^']*'")
+                  ((match-regex "'(?:[^'\\\\]|\\\\.)*'")
+                  ;;((match-regex "'[^']*'")
                    (push (make-token-with-value 'STRING (subseq token-text 1 (1- end)) token-text
                                                 (make-pos filepath line-num col)) tokens))
                   
@@ -262,7 +292,7 @@
     ;;(dump-token-list token-list)
     (lambda ()
       (let ((token (pop token-list)))
-        (when token (format t "LEXER returning ~s~%" token))
+        ;;(when token (format t "LEXER returning ~s~%" token))
         (if (null token)
             (values nil nil)
             (values (token-terminal token) token))))))

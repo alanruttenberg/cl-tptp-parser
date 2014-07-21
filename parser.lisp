@@ -19,6 +19,9 @@
                    :statements statements
                    :token nil)))
 
+(defun parse-syn ()
+  (parse-file "/home/gautham/work/tptp/TPTP-v6.0.0/Problems/SYN/SYN000+1.p"))
+
 (defun parse-test-0 ()
   (parse-file "/home/gautham/work/tptp/TPTP-v6.0.0/tptp/AGT/AGT001+1.tptp"))
 
