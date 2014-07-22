@@ -35,7 +35,7 @@
   (:documentation "Node with arguments"))
 
 (defmethod print-object ((node ast-named) stream)
-  (format stream "<~a ~a>" (type-of node) (ast-name node)))
+  (format stream "~a" (ast-name node)))
 
 (extend-class term ast-node "Base term")
 (extend-class function-term term "Function term")
@@ -52,7 +52,7 @@
   (:documentation "Constant"))
 
 (defmethod print-object ((constant constant) stream)
-  (format stream "<~a>" (value constant)))
+  (format stream "~a" (value constant)))
 
 (defclass function-call (plain-term ast-argumented)
   ((functor :initarg  :functor
@@ -61,7 +61,7 @@
   (:documentation "Plain term with arguments"))
 
 (defmethod print-object ((term function-call) stream)
-  (format stream "<~a ~a>" (functor term) (arguments term)))
+  (format stream "(~a ~{~a~})" (functor term) (arguments term)))
            
 
 (extend-class defined-term function-term "Defined term")
@@ -79,8 +79,25 @@
 (extend-class proposition ast-named-node "Proposition")
 
 (extend-class fof-formula ast-node "FOF formula")
-(extend-class fof-binary-formula fof-formula "FOF binary formula")
-(extend-class fof-unitary-formula fof-formula "FOF unitary formula")
+(extend-class fof-logic-formula fof-formula "FOF logic formula")
+(extend-class fof-sequent fof-formula "FOF sequent")
+
+(defclass fof-binary-formula (fof-logic-formula)
+  ((binop :initarg  :binop
+          :initform (error ":binop must be specified")
+          :reader   binop)
+   (left  :initarg  :left
+          :initform (error ":left must be specified")
+          :reader   left)
+   (right  :initarg  :right
+          :initform (error ":right must be specified")
+          :reader   right))
+  (:documentation "FOF binary formula"))
+
+(defmethod print-object ((formula fof-logic-formula) stream)
+    (format stream "(~a ~a ~a)" (binop formula) (left formula) (right formula)))
+
+(extend-class fof-unitary-formula fof-logic-formula "FOF unitary formula")
 
 (defclass fof-quantified-formula (fof-unitary-formula)
   ((quantifier :initarg  :quantifier
@@ -95,7 +112,7 @@
   (:documentation "FOF quantified formula"))
 
 (defmethod print-object ((qf fof-quantified-formula) stream)
-  (format stream "FOR~a [~s] ~s" (quantifier qf) (variables qf) (formula qf)))
+  (format stream "(FOR~a ~s ~s)" (quantifier qf) (variables qf) (formula qf)))
               
 (defclass plain-atomic-formula (ast-node ast-argumented)
   ((predicate :initarg  :predicate
@@ -117,7 +134,7 @@
   (:documentation "Include directive"))
 
 (defmethod print-object ((node include) stream)
-  (format stream "<INCLUDE ~a>" (file node)))
+  (format stream "(INCLUDE ~a)" (file node)))
 
 (extend-class annotated statement "Annotated formula")
 
@@ -134,7 +151,7 @@
   (:documentation "FOF statement"))
 
 (defmethod print-object ((statement fof-statement) stream)
-  (format stream "<FOF ~a ~a ~a>" (name statement) (role statement) (formula statement)))
+  (format stream "(FOF ~a ~a ~a)" (name statement) (role statement) (formula statement)))
 
 (defclass file (ast-node)
   ((statements :initarg  :statements

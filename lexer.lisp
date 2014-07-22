@@ -196,14 +196,11 @@
                   ((and (>= (length line) 2) (equal (subseq line 0 2) "/*"))
                    (let ((end-found nil))
                      (loop while (not end-found) do
-                          (format t "BEFORE LINE: ~a~%" line)
                           (loop while (and (not (string= line "")) (not end-found)) do
                                (if (and (>= (length line) 2) (equal (subseq line 0 2) "*/"))
                                    (setf end-found t)
                                    (setf col (1+ col)
                                          line (subseq line 1))))
-                          (format t "AFTER LINE : ~a~%" line)
-                          (format t "COL: ~a LINE-NUM ~a~%" col line-num)
                           (when (not end-found)
                             (setf line (read-line code-stream nil nil)
                                   col 0

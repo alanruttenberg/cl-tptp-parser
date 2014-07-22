@@ -132,12 +132,36 @@
    fof-and-formula)
 
   (fof-or-formula
-   (fof-unitary-formula |\|| fof-unitary-formula)
-   (fof-or-formula |\|| fof-unitary-formula))
+   (fof-unitary-formula |\|| fof-unitary-formula (lambda (a b c)
+                                                   (declare (ignore b))
+                                                   (make-instance 'fof-binary-formula
+                                                                  :binop 'OR
+                                                                  :left  a
+                                                                  :right c
+                                                                  :token a)))
+   (fof-or-formula |\|| fof-unitary-formula      (lambda (a b c)
+                                                   (declare (ignore b))
+                                                   (make-instance 'fof-binary-formula
+                                                                  :binop 'OR
+                                                                  :left  a
+                                                                  :right c
+                                                                  :token a))))
 
   (fof-and-formula
-   (fof-unitary-formula |&| fof-unitary-formula)
-   (fof-and-formula |&| fof-unitary-formula))
+   (fof-unitary-formula |&| fof-unitary-formula (lambda (a b c)
+                                                  (declare (ignore b))
+                                                  (make-instance 'fof-binary-formula
+                                                                 :binop 'AND
+                                                                 :left  a
+                                                                 :right c
+                                                                 :token a)))
+   (fof-and-formula |&| fof-unitary-formula     (lambda (a b c)
+                                                  (declare (ignore b))
+                                                  (make-instance 'fof-binary-formula
+                                                                 :binop 'AND
+                                                                 :left  a
+                                                                 :right c
+                                                                 :token a))))
 
   (fof-unitary-formula
    fof-quantified-formula
@@ -226,7 +250,7 @@
   :token a))))|#
   (plain-atomic-formula
    plain-term)
-                                           
+  
 
   #|(proposition
    (predicate (dump-1 "proposition -> predicate")))
@@ -239,8 +263,13 @@
       defined-infix-formula)
   
   (defined-plain-formula
-      defined-plain-term)
+      defined-prop
+      (defined-pred |(| arguments |)|))
 
+  (defined-prop
+      $true
+      $false)
+          
   (defined-infix-formula
       (term defined-infix-pred term))
 
@@ -304,7 +333,8 @@
 
   ;; General purpose
   (name
-   (atomic-word (dump-1 "name -> atomic-word")))
+   (atomic-word (dump-1 "name -> atomic-word"))
+   (NUMBER (dump-1 "name -> NUMBER")))
 
   (atomic-word
    LOWER-WORD
