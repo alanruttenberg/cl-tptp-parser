@@ -63,6 +63,11 @@
                   ;; Boolean
                   $TRUE $FALSE $DISTINCT
 
+                  ;; Arithmatic
+                  $INT $RAT $REAL
+                  $LESS $LESSEQ $GREATER $GREATEREQ
+                  
+                  
                   ;;Punctuation
                   |(| |)| |,| |.| |[| |]| |:|
 
@@ -285,16 +290,26 @@
   
   (defined-plain-formula
       defined-prop
-      (defined-pred |(| arguments |)|))
+      (defined-pred |(| arguments |)| (lambda (a b c d)
+                                        (declare (ignore b d))
+                                        (make-instance 'defined-predicate
+                                                       :functor   (token-text a)
+                                                       :arguments c
+                                                       :token     a))))
 
   (defined-prop
-      ($true  (lambda (a) (make-instance 'boolean-constant
-                                         :value (token-terminal a)
-                                         :token a)))
-      
-      ($false (lambda (a) (make-instance 'boolean-constant
-                                         :value (token-terminal a)
-                                         :token a))))
+      ($true  #'create-boolean-constant)
+      ($false #'create-boolean-constant))
+
+  (defined-pred
+      $distinct
+      $less
+    $lesseq
+    $greater
+    $greatereq
+    $is_int
+    $is_rat)
+  
     
   (defined-infix-formula
       (term defined-infix-pred term (lambda (a b c)

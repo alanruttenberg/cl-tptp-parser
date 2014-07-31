@@ -74,7 +74,12 @@
 
 
 
-(extend-class predicate ast-named-node "Predicate")
+;;(extend-class predicate (ast-node ast-named) "Predicate")
+
+(extend-class defined-predicate function-call "Defined predicate")
+
+(defmethod print-object ((term function-call) stream)
+  (format stream "(~a~{ ~a~})" (functor term) (arguments term)))
 
 (extend-class proposition ast-named-node "Proposition")
 
@@ -176,3 +181,8 @@
        (format stream "~a~%" statement)))
 
 (extend-class boolean-constant (constant) "Boolean value")
+
+(defun create-boolean-constant (a)
+  (make-instance 'boolean-constant
+                 :value (token-terminal a)
+                 :token a))
