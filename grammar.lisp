@@ -19,20 +19,20 @@
   
   (defmacro dump-1 (name)
     (lambda (a)
-      (format t "~s: ~s~%~%" name a)
+      ;;(format t "~s: ~s~%~%" name a)
       ;;(dump-tree a)
       a))
   
   (defmacro dump-2 (name)
     (lambda (a b)
-      (format t "~s: (~s ~s)~%~%" name a b)
+      ;;(format t "~s: (~s ~s)~%~%" name a b)
       ;;(dump-tree a)
       ;;(dump-tree b)
       (list a b)))
   
   (defmacro dump-3 (name)
     (lambda (a b c)
-      (format t "~s: (~s ~s ~s)~%~%" name a b c)
+      ;;(format t "~s: (~s ~s ~s)~%~%" name a b c)
       ;;(dump-tree a)
       ;;(dump-tree b)
       ;;(dump-tree c)
@@ -40,7 +40,7 @@
   
   (defmacro dump-4 (name)
     (lambda (a b c d)
-      (format t "~s: (~s ~s ~s ~s)~%~%" name a b c d)
+      ;;(format t "~s: (~s ~s ~s ~s)~%~%" name a b c d)
       ;;(dump-tree a)
       ;;(dump-tree b)
       ;;(dump-tree c)

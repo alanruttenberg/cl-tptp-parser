@@ -289,7 +289,7 @@
     ;;(dump-token-list token-list)
     (lambda ()
       (let ((token (pop token-list)))
-        (when token (format t "LEXER returning ~s~%" token))
+        ;;(when token (format t "LEXER returning ~s~%" token))
         (if (null token)
             (values nil nil)
             (values (token-terminal token) token))))))
