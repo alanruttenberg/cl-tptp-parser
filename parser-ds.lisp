@@ -61,7 +61,7 @@
   (:documentation "Plain term with arguments"))
 
 (defmethod print-object ((term function-call) stream)
-  (format stream "(~a ~{~a~})" (functor term) (arguments term)))
+  (format stream "(~a~{ ~a~})" (functor term) (arguments term)))
            
 
 (extend-class defined-term function-term "Defined term")
@@ -114,6 +114,18 @@
 (defmethod print-object ((qf fof-quantified-formula) stream)
   (format stream "(FOR~a ~s ~s)" (quantifier qf) (variables qf) (formula qf)))
               
+(defclass fof-unary-formula (fof-unitary-formula)
+  ((op      :initarg  :op
+            :initform (error ":op must be specified")
+            :reader   op)
+   (formula :initarg  :formula
+            :initform (error ":formula must be specified")
+            :reader   formula))
+  (:documentation "FOF unary formula"))
+
+(defmethod print-object ((uf fof-unary-formula) stream)
+  (format stream "(~a ~a)" (op uf) (formula uf)))
+              
 (defclass plain-atomic-formula (ast-node ast-argumented)
   ((predicate :initarg  :predicate
               :initform (error ":predicate must be specified")
@@ -123,7 +135,7 @@
 (defmethod print-object ((formula plain-atomic-formula) stream)
   (if (null (arguments formula))
       (format stream "(~a)" (predicate formula))
-      (format stream "(~a~a)" (predicate formula) (arguments formula))))
+      (format stream "(~a ~a)" (predicate formula) (arguments formula))))
     
 (extend-class statement ast-node "Statement")
 
@@ -162,3 +174,5 @@
 (defmethod print-object ((file file) stream)
   (loop for statement in (statements file) do
        (format stream "~a~%" statement)))
+
+(extend-class boolean-constant (constant) "Boolean value")

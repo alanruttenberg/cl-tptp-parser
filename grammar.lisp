@@ -125,7 +125,18 @@
    fof-binary-assoc)
   
   (fof-binary-nonassoc
-   (fof-unitary-formula binary-connective fof-unitary-formula))
+   (fof-unitary-formula binary-connective fof-unitary-formula (lambda (a b c)
+                                                                (make-instance 'fof-binary-formula
+                                                                               :binop (ccase (token-terminal b)
+                                                                                        ((=>)  'IMPLIES)
+                                                                                        ((<=>) 'IMPLIES-AND-IMPLIED-BY)
+                                                                                        ((<=)  'IMPLIED-BY)
+                                                                                        ((<~>) 'NOT-IMPLIES-AND-IMPLIED-BY)
+                                                                                        ((~\|) 'NOR)
+                                                                                        ((~&)   'NAND))
+                                                                               :left a
+                                                                               :right c
+                                                                               :token a))))
 
   (fof-binary-assoc
    fof-or-formula
@@ -191,7 +202,12 @@
                                      (cons a c))))
 
   (fof-unary-formula
-   (unary-connective fof-unitary-formula)
+   (unary-connective fof-unitary-formula (lambda (a b)
+                                           (make-instance 'fof-unary-formula
+                                                          :op (cond
+                                                                ((equal (token-terminal a) '|~|) 'NEG))
+                                                          :formula b
+                                                          :token a)))
    fol-infix-unary)
    
   (fof-sequent
@@ -209,7 +225,12 @@
 
   ;; Special formulae.
   (fol-infix-unary
-   (term infix-inequality term))
+   (term infix-inequality term (lambda (a b c)
+                                 (make-instance 'fof-binary-formula
+                                                :binop (token-terminal b)
+                                                :left a
+                                                :right c
+                                                :token (ast-token a)))))
 
   ;; Connectives
   (fol-quantifier
@@ -267,11 +288,21 @@
       (defined-pred |(| arguments |)|))
 
   (defined-prop
-      $true
-      $false)
-          
+      ($true  (lambda (a) (make-instance 'boolean-constant
+                                         :value (token-terminal a)
+                                         :token a)))
+      
+      ($false (lambda (a) (make-instance 'boolean-constant
+                                         :value (token-terminal a)
+                                         :token a))))
+    
   (defined-infix-formula
-      (term defined-infix-pred term))
+      (term defined-infix-pred term (lambda (a b c)
+                                      (make-instance 'fof-binary-formula
+                                                     :binop (token-terminal b)
+                                                     :left a
+                                                     :right c
+                                                     :token (ast-token a)))))
 
   (defined-infix-pred
       infix-equality)
